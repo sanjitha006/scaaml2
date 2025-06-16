@@ -57,7 +57,7 @@ def train_model(config):
     #for attack_byte in config["attack_bytes"]:   #go through all attackbyte and all attack point and take data approprioately
         # for attack_point in config["attack_points"]:
         attack_point="shiftrow1"
-        attack_byte=2
+        attack_byte=10
 #the shards each has 48 dataparts each has 256 plaintexts ka traces
         x_train, y_train = create_dataset(
             train_glob,

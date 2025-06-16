@@ -4,10 +4,10 @@
     "algorithm": "tinyaes",
     "version": "10",
     "attack_points": [
+        "shiftrow1",
         "sub_bytes_out",
         "sub_bytes_in",
-        "key",
-        "shiftrow1"
+        "key"
     ],
     "attack_bytes": [
         "0",

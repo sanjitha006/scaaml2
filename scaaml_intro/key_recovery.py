@@ -29,15 +29,25 @@ DATASET_GLOB = "/kaggle/working/scaaml/scaaml_intro/datasets/%s/test/*" % target
 shard_paths  = list_shards(DATASET_GLOB, 256)
 
 #let's select an attack point that have all the needed models -- Key is not a good target: it doesn't work
-ATTACK_POINT = 'shiftrow1'
+ATTACK_POINT = "shiftrow1"
 
 # let's also pick the key byte we want to use SCAAML to recover and load the related model
 ATTACK_BYTE = 2
 
+m_shift_row = [
+    0, 13, 10, 7,
+    4, 1, 14, 11,
+    8, 5, 2, 15,
+    12, 9, 6, 3
+]
+
 # load model
 #print(available_models)
 #model = load_model_from_disk(available_models[ATTACK_POINT][ATTACK_BYTE])
-model=load_model_from_disk("/kaggle/working/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_shiftrow1-byte_2-len_20000.keras")
+if(ATTACK_POINT=="shiftrow1"):
+    model=load_model_from_disk("/kaggle/working/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_shiftrow1-byte_"+str(m_shift_row[ATTACK_BYTE])+"-len_20000.keras")
+else:
+    model=load_model_from_disk("/kaggle/working/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_"+ATTACK_POINT+"-byte_"+str(ATTACK_POINT)+"-len_20000.keras")
 #model=tf.keras.layers.TFSMLayer("/home/sanju/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_sub_bytes_out-byte_0-len_20000.keras", call_endpoint='serving_default')
 
  #tf.keras.models.load_model
@@ -47,13 +57,19 @@ y_pred = []
 y_true = []
 model_metrics = {"acc": metrics.Accuracy()}
 for shard in tqdm(shard_paths, desc='Recovering bytes', unit='shards'):
-    keys, pts, x, y = load_attack_shard(shard, ATTACK_BYTE, ATTACK_POINT, TRACE_LEN, num_traces=NUM_TRACES)
-
-    # prediction
-    predictions = model.predict(x)
     
     # computing byte prediction from intermediate predictions
-    key_preds = ap_preds_to_key_preds(predictions, pts, ATTACK_POINT)
+    if(ATTACK_POINT=="shiftrow1"):
+        keys, pts, x, y = load_attack_shard(shard, m_shift_row[ATTACK_BYTE], ATTACK_POINT, TRACE_LEN, num_traces=NUM_TRACES)
+        keys_t,pts_t,x_t,y_t=load_attack_shard(shard, ATTACK_BYTE, "sub_bytes_out", TRACE_LEN, num_traces=NUM_TRACES)
+        predictions = model.predict(x)
+        key_preds = ap_preds_to_key_preds(predictions, pts_t, "sub_bytes_out")
+        key=keys_t[0]
+    else:
+        keys, pts, x, y = load_attack_shard(shard, ATTACK_BYTE, ATTACK_POINT, TRACE_LEN, num_traces=NUM_TRACES)
+        predictions = model.predict(x)
+        key_preds = ap_preds_to_key_preds(predictions, pts, ATTACK_POINT)
+        key = keys[0] # all the same in the same shard - not used in real attack
     
     c_preds = from_categorical(predictions)
     c_y = from_categorical(y)
@@ -69,13 +85,13 @@ for shard in tqdm(shard_paths, desc='Recovering bytes', unit='shards'):
     # see below on how to use for the real attack
     
     
-    key = keys[0] # all the same in the same shard - not used in real attack
     vals = np.zeros((256))
     for trace_count, kp in enumerate(key_preds):
         vals = vals  + np.log10(kp + 1e-22) 
         guess_ranks = (np.argsort(vals, )[-256:][::-1])
         byte_rank = list(guess_ranks).index(key)
         correct_prediction_rank[trace_count].append(byte_rank)
+
 for i in range(10): 
     print(correct_prediction_rank[i])
 print("Accuracy: %.2f" % model_metrics['acc'].result())

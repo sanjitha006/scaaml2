@@ -48,7 +48,7 @@ m_shift_row = [
 
 def ap_preds_to_key_preds(preds: npt.NDArray[np.generic],
                           plaintexts: npt.NDArray[np.generic],
-                          attack_point: str,attack_byte:int) -> npt.NDArray[np.generic]:
+                          attack_point: str) -> npt.NDArray[np.generic]:
     "Convert attack points predictions to key byte prediction"
 
     preds = np.array(preds)
