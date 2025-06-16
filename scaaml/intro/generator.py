@@ -41,9 +41,9 @@ def create_dataset(file_pattern: str,
     shards = list_shards(file_pattern, num_shards)
     attack_byte = int(attack_byte)
 
-    if attack_point not in ["key", "sub_bytes_in", "sub_bytes_out"]:
+    if attack_point not in ["key", "sub_bytes_in", "sub_bytes_out","shiftrow1"]:
         raise ValueError(
-            "invalid attack point. avail: key, sub_bytes_in, sub_bytes_out")
+            "invalid attack point. avail: key, sub_bytes_in, sub_bytes_out,shiftrow1")
 
     x_list: List[Tensor] = []
     y_list: List[Tensor] = []
@@ -126,6 +126,8 @@ def load_attack_shard(
         y = shard["sub_bytes_in"][attack_byte]
     elif attack_point == "sub_bytes_out":
         y = shard["sub_bytes_out"][attack_byte]
+    elif attack_point == "shiftrow1":
+        y = shard["shiftrow1"][attack_byte]
     else:
         raise ValueError(f"Unknown attack point {attack_point}.")
 
@@ -151,6 +153,8 @@ def load_shard(fname: str, attack_byte: int, attack_point: str,
         y = shard["sub_bytes_in"][attack_byte]
     elif attack_point == "sub_bytes_out":
         y = shard["sub_bytes_out"][attack_byte]
+    elif attack_point == "shiftrow1":
+        y = shard["shiftrow1"][attack_byte]
     else:
         raise ValueError(f"Unknown attack point {attack_point}.")
 
