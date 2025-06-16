@@ -24,12 +24,12 @@ TRACE_LEN = target_config['max_trace_len']
 
 available_models = get_models_by_attack_point(target_config)
 
-
+#here completely have to change; if the attack byte is shiftrow1 the model has to be decided here itself and load it and inside take original keys from the correct byte but take intermediate predictions from the guy who would have taken up this byte's result after sbox, plaintext shoul dbe for the target byte only sboxx also..apreds(pl[target],sbox[target],subbyteout) result key can be matched with the shard downloaded for the target...need 2 shards sice plaintext from one and key from another...
 DATASET_GLOB = "/kaggle/working/scaaml/scaaml_intro/datasets/%s/test/*" % target_config['algorithm']
 shard_paths  = list_shards(DATASET_GLOB, 256)
 
 #let's select an attack point that have all the needed models -- Key is not a good target: it doesn't work
-ATTACK_POINT = 'sub_bytes_out'
+ATTACK_POINT = 'shiftrow1'
 
 # let's also pick the key byte we want to use SCAAML to recover and load the related model
 ATTACK_BYTE = 2
@@ -37,7 +37,7 @@ ATTACK_BYTE = 2
 # load model
 #print(available_models)
 #model = load_model_from_disk(available_models[ATTACK_POINT][ATTACK_BYTE])
-model=load_model_from_disk("/kaggle/working/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_sub_bytes_out-byte_2-len_20000.keras")
+model=load_model_from_disk("/kaggle/working/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_shiftrow1-byte_2-len_20000.keras")
 #model=tf.keras.layers.TFSMLayer("/home/sanju/scaaml/models/stm32f415-tinyaes-cnn-v10-ap_sub_bytes_out-byte_0-len_20000.keras", call_endpoint='serving_default')
 
  #tf.keras.models.load_model

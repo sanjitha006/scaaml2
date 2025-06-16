@@ -37,9 +37,18 @@ SBREV = np.array([
 ])
 
 
+#m_shift_row={0:0,1:5,2:10,3:15,4:4,5:9,6:14,7:3,8:8,9:13,10:2,11:7,12:12,13:1,14:6,15:11}
+m_shift_row = [
+    0, 13, 10, 7,
+    4, 1, 14, 11,
+    8, 5, 2, 15,
+    12, 9, 6, 3
+]
+#change all function calls parameters -inc byte no.
+
 def ap_preds_to_key_preds(preds: npt.NDArray[np.generic],
                           plaintexts: npt.NDArray[np.generic],
-                          attack_point: str) -> npt.NDArray[np.generic]:
+                          attack_point: str,attack_byte:int) -> npt.NDArray[np.generic]:
     "Convert attack points predictions to key byte prediction"
 
     preds = np.array(preds)
@@ -66,5 +75,22 @@ def ap_preds_to_key_preds(preds: npt.NDArray[np.generic],
             key_probas.append(probas)
 
         return np.array(key_probas)
+    elif attack_point=="shiftrow1": 
+        key_probas=[]
+        
+
+        for idx,pred in enumerate(preds):
+
+            probas=np.zeros(256)
+            for pidx, kidx in enumerate(kidxs):
+                probas[kidx] = pred[pidx]
+            key_probas.append(probas)
+
+        return np.array(key_probas)
+    elif attack_point=="shiftrow1": 
+        original_index = m_shift_row[attack_byte]
+        return ap_preds_to_key_preds(preds,plaintexts,"sub_bytes_out",original_index)
+
     else:
         raise ValueError("Invalid attack point")
+#preds has the probability of each int. values for all 10 traces
